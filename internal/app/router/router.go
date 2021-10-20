@@ -45,6 +45,7 @@ type Router struct {
 	// logistic
 	// product
 	// education
+	buy Commander
 }
 
 func NewRouter(
@@ -184,7 +185,7 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 	case "access":
 		break
 	case "buy":
-		break
+		c.buy.HandleCommand(msg, commandPath)
 	case "delivery":
 		break
 	case "recommendation":

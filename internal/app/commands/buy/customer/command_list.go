@@ -25,7 +25,7 @@ func (c *BuyCustomerCommander) List(inputMessage *tgbotapi.Message) {
 
 	callbackPath := path.CallbackPath{
 		Domain:       "buy",
-		Customer:    "customer",
+		Subdomain:    "customer",
 		CallbackName: "list",
 		CallbackData: string(serializedData),
 	}

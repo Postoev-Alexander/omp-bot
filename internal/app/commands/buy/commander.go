@@ -14,7 +14,7 @@ type Commander interface {
 }
 
 type BuyCommander struct {
-	bot                *tgbotapi.BotAPI
+	bot               *tgbotapi.BotAPI
 	customerCommander Commander
 }
 
@@ -29,19 +29,19 @@ func NewBuyCommander(
 }
 
 func (c *BuyCommander) HandleCallback(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
-	switch callbackPath.Customer {
+	switch callbackPath.Subdomain {
 	case "customer":
 		c.customerCommander.HandleCallback(callback, callbackPath)
 	default:
-		log.Printf("BuyCommander.HandleCallback: unknown customer - %s", callbackPath.Customer)
+		log.Printf("BuyCommander.HandleCallback: unknown customer - %s", callbackPath.Subdomain)
 	}
 }
 
 func (c *BuyCommander) HandleCommand(msg *tgbotapi.Message, commandPath path.CommandPath) {
-	switch commandPath.Customer {
+	switch commandPath.Subdomain {
 	case "customer":
 		c.customerCommander.HandleCommand(msg, commandPath)
 	default:
-		log.Printf("BuyCommander.HandleCommand: unknown customer - %s", commandPath.Customer)
+		log.Printf("BuyCommander.HandleCommand: unknown customer - %s", commandPath.Subdomain)
 	}
 }

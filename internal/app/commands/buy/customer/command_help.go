@@ -1,8 +1,9 @@
 package customer
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"log"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func (c *BuyCustomerCommander) Help(inputMessage *tgbotapi.Message) {

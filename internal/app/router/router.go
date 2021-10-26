@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/ozonmp/omp-bot/internal/app/commands/buy"
 	"github.com/ozonmp/omp-bot/internal/app/commands/demo"
 	"github.com/ozonmp/omp-bot/internal/app/path"
 )
@@ -81,6 +82,7 @@ func NewRouter(
 		// logistic
 		// product
 		// education
+		buy: buy.NewBuyCommander(bot),
 	}
 }
 
@@ -114,7 +116,7 @@ func (c *Router) handleCallback(callback *tgbotapi.CallbackQuery) {
 	case "access":
 		break
 	case "buy":
-		break
+		c.buy.HandleCallback(callback, callbackPath)
 	case "delivery":
 		break
 	case "recommendation":
@@ -236,7 +238,7 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 }
 
 func (c *Router) showCommandFormat(inputMessage *tgbotapi.Message) {
-	outputMsg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Command format: /{command}__{domain}__{subdomain}")
+	outputMsg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Command format: /{command}__{domain-buy}__{subdomain-customer}")
 
 	_, err := c.bot.Send(outputMsg)
 	if err != nil {

@@ -8,19 +8,42 @@ import (
 	"github.com/ozonmp/omp-bot/internal/app/path"
 )
 
-func (c *BuyCustomerCommander) List(inputMessage *tgbotapi.Message) {
-	outputMsgText := "Here all the products: \n\n"
+func (c *CustomerCommander) List(inputMessage *tgbotapi.Message) {
+	c.SendPage(inputMessage.Chat.ID, "Here all the customers: \n\n", 0, 5)
+}
 
-	products := c.customerService.List()
-	for _, p := range products {
-		outputMsgText += p.Title
+func (c *CustomerCommander) SendPage(chatID int64, header string, cursor uint64, limit uint64) {
+	customers, err := c.customerService.List(cursor, limit+1)
+	if err != nil {
+		log.Printf("CustomerCommander.SendPage: error getting customer list - %v", err)
+		return
+	}
+
+	msg := tgbotapi.NewMessage(chatID, "")
+
+	if len(customers) == int(limit+1) {
+		addNextButton(&msg, cursor, limit)
+		customers = customers[:len(customers)-1]
+	}
+
+	outputMsgText := header
+	for _, p := range customers {
+		outputMsgText += p.String()
 		outputMsgText += "\n"
 	}
 
-	msg := tgbotapi.NewMessage(inputMessage.Chat.ID, outputMsgText)
+	msg.Text = outputMsgText
 
+	_, err = c.bot.Send(msg)
+	if err != nil {
+		log.Printf("CustomerCommander.SendPage: error sending reply message to chat - %v", err)
+	}
+}
+
+func addNextButton(msg *tgbotapi.MessageConfig, cursor uint64, limit uint64) {
 	serializedData, _ := json.Marshal(CallbackListData{
-		Offset: 21,
+		Cursor: cursor + limit,
+		Limit:  limit,
 	})
 
 	callbackPath := path.CallbackPath{
@@ -35,9 +58,4 @@ func (c *BuyCustomerCommander) List(inputMessage *tgbotapi.Message) {
 			tgbotapi.NewInlineKeyboardButtonData("Next page", callbackPath.String()),
 		),
 	)
-
-	_, err := c.bot.Send(msg)
-	if err != nil {
-		log.Printf("BuyCustomerCommander.List: error sending reply message to chat - %v", err)
-	}
 }

@@ -2,7 +2,6 @@ package customer
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -10,24 +9,18 @@ import (
 )
 
 type CallbackListData struct {
-	Offset int `json:"offset"`
+	Cursor uint64 `json:"cursor"`
+	Limit  uint64 `json:"limit"`
 }
 
-func (c *BuyCustomerCommander) CallbackList(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
+func (c *CustomerCommander) CallbackList(callback *tgbotapi.CallbackQuery, callbackPath path.CallbackPath) {
 	parsedData := CallbackListData{}
 	err := json.Unmarshal([]byte(callbackPath.CallbackData), &parsedData)
 	if err != nil {
-		log.Printf("BuyCustomerCommander.CallbackList: "+
+		log.Printf("CustomerCommander.CallbackList: "+
 			"error reading json data for type CallbackListData from "+
 			"input string %v - %v", callbackPath.CallbackData, err)
 		return
 	}
-	msg := tgbotapi.NewMessage(
-		callback.Message.Chat.ID,
-		fmt.Sprintf("Parsed: %+v\n", parsedData),
-	)
-	_, err = c.bot.Send(msg)
-	if err != nil {
-		log.Printf("BuyCustomerCommander.CallbackList: error sending reply message to chat - %v", err)
-	}
+	c.SendPage(callback.Message.Chat.ID, "Next page:\n\n", parsedData.Cursor, parsedData.Limit)
 }

@@ -1,6 +1,7 @@
 package buy
 
 import (
+	"fmt"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -18,13 +19,10 @@ type BuyCommander struct {
 	customerCommander Commander
 }
 
-func NewBuyCommander(
-	bot *tgbotapi.BotAPI,
-) *BuyCommander {
+func NewBuyCommander(bot *tgbotapi.BotAPI) *BuyCommander {
 	return &BuyCommander{
-		bot: bot,
-		// customerCommander
-		customerCommander: customer.NewBuyCustomerCommander(bot),
+		bot:               bot,
+		customerCommander: customer.NewCustomerCommander(bot),
 	}
 }
 
@@ -33,7 +31,7 @@ func (c *BuyCommander) HandleCallback(callback *tgbotapi.CallbackQuery, callback
 	case "customer":
 		c.customerCommander.HandleCallback(callback, callbackPath)
 	default:
-		log.Printf("BuyCommander.HandleCallback: unknown customer - %s", callbackPath.Subdomain)
+		log.Printf("BuyCommander.HandleCallback: unknown subdomain - %s", callbackPath.Subdomain)
 	}
 }
 
@@ -42,6 +40,15 @@ func (c *BuyCommander) HandleCommand(msg *tgbotapi.Message, commandPath path.Com
 	case "customer":
 		c.customerCommander.HandleCommand(msg, commandPath)
 	default:
-		log.Printf("BuyCommander.HandleCommand: unknown customer - %s", commandPath.Subdomain)
+		log.Printf("BuyCommander.HandleCommand: unknown subdomain - %s", commandPath.Subdomain)
+
+		msg := tgbotapi.NewMessage(
+			msg.Chat.ID,
+			fmt.Sprintf("Unknown subdomain - %s", commandPath.Subdomain))
+
+		_, err := c.bot.Send(msg)
+		if err != nil {
+			log.Printf("BuyCommander.HandleCommand: error sending reply message to chat - %v", err)
+		}
 	}
 }

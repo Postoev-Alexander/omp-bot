@@ -1,34 +1,39 @@
 package customer
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func (c *BuyCustomerCommander) Get(inputMessage *tgbotapi.Message) {
+func (c *CustomerCommander) Get(inputMessage *tgbotapi.Message) {
 	args := inputMessage.CommandArguments()
 
-	idx, err := strconv.Atoi(args)
-	if err != nil {
-		log.Println("wrong args", args)
+	id, err := strconv.Atoi(args)
+	if err != nil || id < 0 {
+		log.Printf("CustomerCommander.Get "+
+			"error parsing id: %v", err)
+
+		c.Reply(
+			inputMessage.Chat.ID,
+			"Failed to parse customer id! Correct syntax for 'get' command is:\n"+
+				`/get__buy__customer <id> (id >= 0)`)
 		return
 	}
 
-	product, err := c.customerService.Get(idx)
+	customer, err := c.customerService.Describe(uint64(id))
 	if err != nil {
-		log.Printf("fail to get product with idx %d: %v", idx, err)
+		log.Printf("fail to get product with idx %d: %v", id, err)
+
+		c.Reply(
+			inputMessage.Chat.ID,
+			fmt.Sprintf(`Failed to get customer: %v`, err))
 		return
 	}
 
-	msg := tgbotapi.NewMessage(
+	c.Reply(
 		inputMessage.Chat.ID,
-		product.Title,
-	)
-
-	_, err = c.bot.Send(msg)
-	if err != nil {
-		log.Printf("BuyCustomerCommander.Get: error sending reply message to chat - %v", err)
-	}
+		customer.String())
 }

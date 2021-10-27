@@ -24,6 +24,7 @@ type Router struct {
 	// user
 	// access
 	// buy
+	buyCommander Commander
 	// delivery
 	// recommendation
 	// travel
@@ -46,7 +47,6 @@ type Router struct {
 	// logistic
 	// product
 	// education
-	buy Commander
 }
 
 func NewRouter(
@@ -60,6 +60,7 @@ func NewRouter(
 		// user
 		// access
 		// buy
+		buyCommander: buy.NewBuyCommander(bot),
 		// delivery
 		// recommendation
 		// travel
@@ -82,7 +83,6 @@ func NewRouter(
 		// logistic
 		// product
 		// education
-		buy: buy.NewBuyCommander(bot),
 	}
 }
 
@@ -116,7 +116,7 @@ func (c *Router) handleCallback(callback *tgbotapi.CallbackQuery) {
 	case "access":
 		break
 	case "buy":
-		c.buy.HandleCallback(callback, callbackPath)
+		c.buyCommander.HandleCallback(callback, callbackPath)
 	case "delivery":
 		break
 	case "recommendation":
@@ -175,7 +175,7 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 
 	commandPath, err := path.ParseCommand(msg.Command())
 	if err != nil {
-		log.Printf("Router.handleCallback: error parsing callback data `%s` - %v", msg.Command(), err)
+		log.Printf("Router.handleMessage: error parsing message data `%s` - %v", msg.Command(), err)
 		return
 	}
 
@@ -187,7 +187,7 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 	case "access":
 		break
 	case "buy":
-		c.buy.HandleCommand(msg, commandPath)
+		c.buyCommander.HandleCommand(msg, commandPath)
 	case "delivery":
 		break
 	case "recommendation":
@@ -238,7 +238,7 @@ func (c *Router) handleMessage(msg *tgbotapi.Message) {
 }
 
 func (c *Router) showCommandFormat(inputMessage *tgbotapi.Message) {
-	outputMsg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Command format: /{command}__{domain-buy}__{subdomain-customer}")
+	outputMsg := tgbotapi.NewMessage(inputMessage.Chat.ID, "Command format: /{command}__{domain}__{subdomain}")
 
 	_, err := c.bot.Send(outputMsg)
 	if err != nil {
